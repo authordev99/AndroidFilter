@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent" android:layout_height="wrap_content"
+              android:orientation="vertical"
+              android:layout_margin="16dp">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:id="@+id/linearLayoutPrice">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:text="Price Range"
+                  android:textSize="16sp"/>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                      android:orientation="horizontal"
+                      android:gravity="right">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                      tools:text="Any - Any"
+                      android:textSize="16sp"/>
+            <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                       android:src="@drawable/ic_expand_more_black"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <View android:layout_width="match_parent" android:layout_height="2dp"
+          android:background="@android:color/darker_gray"
+          android:layout_marginTop="16dp"
+          android:layout_marginBottom="16dp"/>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                  android:orientation="horizontal">
+
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                      android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                      tools:text="Minimum Price"
+                      android:textSize="16sp"/>
+            <EditText android:layout_width="match_parent" android:layout_height="40dp"
+                      android:background="@drawable/edit_text_border"
+                      android:padding="2dp"/>
+
+        </LinearLayout>
+
+        <View android:layout_width="16dp" android:layout_height="2dp"
+              android:background="@android:color/darker_gray"
+              android:layout_marginTop="24dp"
+              android:layout_marginStart="4dp"
+              android:layout_marginEnd="4dp"
+              android:layout_gravity="center_vertical"
+              android:layout_marginBottom="16dp"/>
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                      android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                      tools:text="Maximum Price"
+                      android:textSize="16sp"/>
+            <EditText android:layout_width="match_parent" android:layout_height="40dp"
+                      android:background="@drawable/edit_text_border"
+                      android:padding="2dp"/>
+
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

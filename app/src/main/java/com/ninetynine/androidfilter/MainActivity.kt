@@ -1,14 +1,14 @@
 package com.ninetynine.androidfilter
 
+import android.content.Intent
 import android.databinding.ObservableArrayList
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.widget.Toast
-import com.ninetynine.androidfilter.Model.Model
-import com.ninetynine.androidfilter.Model.Row
-import com.ninetynine.androidfilter.Model.Section
+import com.google.gson.Gson
+import com.ninetynine.androidfilter.Model.*
 import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity() {
                     println("response body = ${response.body().toString()}")
                     val form: Model = response.body()!!
                     println("error = " + response.errorBody())
+                    val page = form.form!!.Page!!
 
                     val sectionList = form.form!!.Page!!.main_page!!.sections
 
@@ -62,7 +63,25 @@ class MainActivity : AppCompatActivity() {
 
                     println("listRow response = $listRow")
                     recyclerView.layoutManager = LinearLayoutManager(this@MainActivity)
-                    recyclerView.adapter = RecyclerViewAdapter(this@MainActivity, listRow)
+                    recyclerView.adapter = RecyclerViewAdapter(this@MainActivity, listRow, object :
+                        RecyclerViewAdapter.OnItemClickListener {
+                        override fun onItemClick(item: Any) {
+                            val row = item as Row
+                            if (row.type.equals("page", true)) {
+                                var pages: Pages? = null
+                                if (row.refer.equals("more_filters_page",true)) {
+                                    pages = page.more_filters_page!!
+                                } else if (row.refer.equals("property_type_page",true)) {
+                                    pages = page.property_type_page!!
+                                }
+                                val intent = Intent(this@MainActivity, MoreActivity::class.java)
+                                intent.putExtra("ITEM", Gson().toJson(pages, Pages::class.java))
+                                startActivity(intent)
+                            }
+
+                        }
+
+                    })
 
                 }
             }

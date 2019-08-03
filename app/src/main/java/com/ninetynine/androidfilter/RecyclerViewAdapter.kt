@@ -7,20 +7,23 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import com.ninetynine.androidfilter.Model.Row
 import kotlinx.android.synthetic.main.list_item_bedroom.view.*
 import kotlinx.android.synthetic.main.list_item_type.view.*
+import org.w3c.dom.Text
 
 class RecyclerViewAdapter() :
     RecyclerView.Adapter<RecyclerViewAdapter.BaseViewHolder<*>>() {
 
     lateinit var context: Context
     lateinit var listRow: ObservableArrayList<Row>
+    var clickListener: OnItemClickListener? = null
     var isRent = false
+    var isExpanded = false
 
-    constructor(context: Context, listRow: ObservableArrayList<Row>) : this() {
+    constructor(context: Context, listRow: ObservableArrayList<Row>, clickListener: OnItemClickListener) : this() {
+        this.clickListener = clickListener
         this.context = context
         this.listRow = listRow
     }
@@ -31,6 +34,7 @@ class RecyclerViewAdapter() :
         const val ITEM_TEXT = 3
         const val ITEM_NUMERIC_RANGE = 4
         const val ITEM_CHECKBOX = 5
+        const val ITEM_PAGE = 5
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<*> {
@@ -38,6 +42,9 @@ class RecyclerViewAdapter() :
         return when (viewType) {
             ITEM_SELECTION -> ViewHolderSelection(inflater.inflate(R.layout.linear_layout, null))
             ITEM_GROUP_SELECTION -> ViewHolderRentalType(inflater.inflate(R.layout.linear_layout, null))
+            ITEM_NUMERIC_RANGE -> ViewHolderPriceRange(inflater.inflate(R.layout.list_item_price, null))
+            ITEM_TEXT -> ViewHolderText(inflater.inflate(R.layout.list_item_edit, null))
+            ITEM_PAGE -> ViewHolderPage(inflater.inflate(R.layout.list_item_page, null))
             else -> ViewHolderRentalType(inflater.inflate(R.layout.linear_layout, null))
         }
     }
@@ -55,6 +62,18 @@ class RecyclerViewAdapter() :
                 val viewHolderRentalType = holder as ViewHolderRentalType
                 viewHolderRentalType.bind(element, position)
             }
+            ITEM_NUMERIC_RANGE -> {
+                val viewHolderPriceRange = holder as ViewHolderPriceRange
+                viewHolderPriceRange.bind(element, position)
+            }
+            ITEM_TEXT -> {
+                val viewHolderText = holder as ViewHolderText
+                viewHolderText.bind(element, position)
+            }
+            ITEM_PAGE -> {
+                val viewHolderPage = holder as ViewHolderPage
+                viewHolderPage.bind(element, position)
+            }
         }
     }
 
@@ -67,6 +86,7 @@ class RecyclerViewAdapter() :
             listRow[position].type.equals("text") -> ITEM_TEXT
             listRow[position].type.equals("numeric_range") -> ITEM_NUMERIC_RANGE
             listRow[position].type.equals("checkbox") -> ITEM_CHECKBOX
+            listRow[position].type.equals("page") -> ITEM_PAGE
             else -> -1
         }
 
@@ -121,6 +141,7 @@ class RecyclerViewAdapter() :
         override fun bind(item: Row, position: Int) {
             linearLayout.removeAllViews()
             if (isRent) {
+
                 linearLayout.visibility = View.VISIBLE
                 linearLayout.orientation = LinearLayout.HORIZONTAL
                 val paramsLinear = LinearLayout.LayoutParams(
@@ -129,6 +150,18 @@ class RecyclerViewAdapter() :
                 )
                 paramsLinear.setMargins(20, 20, 20, 20)
                 linearLayout.layoutParams = paramsLinear
+//
+//                val tv = TextView(context)
+//                val paramsText = LinearLayout.LayoutParams(
+//                    LinearLayout.LayoutParams.WRAP_CONTENT,
+//                    LinearLayout.LayoutParams.WRAP_CONTENT
+//                )
+//                tv.layoutParams = paramsText
+//                tv.text = item.title
+//
+//                linearLayout.addView(tv)
+
+
                 item.options!!.forEach {
                     val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
                     val selection = inflater.inflate(R.layout.list_item_bedroom, null)
@@ -148,8 +181,61 @@ class RecyclerViewAdapter() :
         }
     }
 
+    inner class ViewHolderPriceRange(itemView: View) : BaseViewHolder<Row>(itemView) {
+        val title = itemView.findViewById<TextView>(R.id.tvTitle)
+        val tvMaxPrice = itemView.findViewById<TextView>(R.id.tvMaximumPrice)
+        val tvMinPrice = itemView.findViewById<TextView>(R.id.tvMinimumPrice)
+        val tvRange = itemView.findViewById<TextView>(R.id.tvRange)
+        val linearLayoutTitle = itemView.findViewById<LinearLayout>(R.id.linearLayoutPrice)
+        val layoutRange = itemView.findViewById<LinearLayout>(R.id.layoutRange)
+        val expandIcon = itemView.findViewById<ImageView>(R.id.expandIcon)
+        override fun bind(item: Row, position: Int) {
+            title.text = item.title
+            tvMaxPrice.text = item.max_title
+            tvMinPrice.text = item.min_title
+
+            linearLayoutTitle.setOnClickListener {
+                if (isExpanded) {
+                    layoutRange.visibility = View.GONE
+                    expandIcon.setImageResource(R.drawable.ic_expand_more_black)
+                    isExpanded = false
+                } else {
+                    layoutRange.visibility = View.VISIBLE
+                    expandIcon.setImageResource(R.drawable.ic_expand_less_black)
+                    isExpanded = true
+                }
+
+            }
+        }
+    }
+
+    inner class ViewHolderText(itemView: View) : BaseViewHolder<Row>(itemView) {
+        val etKeywords = itemView.findViewById<EditText>(R.id.etKeywords)
+        val tvTitle = itemView.findViewById<TextView>(R.id.tvTitle)
+        override fun bind(item: Row, position: Int) {
+            tvTitle.text = item.title
+            etKeywords.hint = item.placeholder
+            etKeywords.setSingleLine(!item.multiple_line)
+        }
+    }
+
+    inner class ViewHolderPage(itemView: View) : BaseViewHolder<Row>(itemView) {
+        val linearLayoutMore = itemView.findViewById<LinearLayout>(R.id.linearLayoutMore)
+        val tvTitle = itemView.findViewById<TextView>(R.id.tvTitle)
+        override fun bind(item: Row, position: Int) {
+            tvTitle.text = item.title
+            linearLayoutMore.setOnClickListener {
+                clickListener!!.onItemClick(item)
+            }
+        }
+    }
+
     abstract class BaseViewHolder<T>(itemView: View) : RecyclerView.ViewHolder(itemView) {
         abstract fun bind(item: T, position: Int)
+    }
+
+    interface OnItemClickListener {
+        fun onItemClick(item: Any)
     }
 
 }

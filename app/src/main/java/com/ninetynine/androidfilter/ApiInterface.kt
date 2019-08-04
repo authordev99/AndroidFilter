@@ -11,8 +11,7 @@ interface ApiInterface {
     companion object {
         var BASE_URL = "https://api.myjson.com/bins/"
     }
-
-    @GET("1ekgtx")
+    @GET("j46hh")
     fun getForm(): Call<Model>
 
 }

@@ -1,12 +1,14 @@
 package com.ninetynine.androidfilter
 
 import android.content.Intent
-import android.databinding.ObservableArrayList
+import androidx.databinding.ObservableArrayList
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.widget.Toast
+import com.google.android.flexbox.FlexDirection
+import com.google.android.flexbox.FlexWrap
 import com.google.gson.Gson
 import com.ninetynine.androidfilter.Model.*
 import kotlinx.android.synthetic.main.activity_main.*
@@ -19,7 +21,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class MainActivity : AppCompatActivity() {
 
     var listRow: ObservableArrayList<Row> = ObservableArrayList()
-    lateinit var recyclerView: RecyclerView
+    lateinit var recyclerView: androidx.recyclerview.widget.RecyclerView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -57,21 +59,26 @@ class MainActivity : AppCompatActivity() {
 
                     val sectionList = form.form!!.Page!!.main_page!!.sections
 
+                    val row = Row()
+                    row.type = "section"
+
                     sectionList!!.forEach {
                         listRow.addAll(it.rows!!)
+                        listRow.add(row)
                     }
 
                     println("listRow response = $listRow")
-                    recyclerView.layoutManager = LinearLayoutManager(this@MainActivity)
+                    recyclerView.layoutManager =
+                        FlexibleFlexboxLayoutManager(this@MainActivity, FlexDirection.ROW, FlexWrap.WRAP)
                     recyclerView.adapter = RecyclerViewAdapter(this@MainActivity, listRow, object :
                         RecyclerViewAdapter.OnItemClickListener {
                         override fun onItemClick(item: Any) {
                             val row = item as Row
                             if (row.type.equals("page", true)) {
                                 var pages: Pages? = null
-                                if (row.refer.equals("more_filters_page",true)) {
+                                if (row.refer.equals("more_filters_page", true)) {
                                     pages = page.more_filters_page!!
-                                } else if (row.refer.equals("property_type_page",true)) {
+                                } else if (row.refer.equals("property_type_page", true)) {
                                     pages = page.property_type_page!!
                                 }
                                 val intent = Intent(this@MainActivity, MoreActivity::class.java)

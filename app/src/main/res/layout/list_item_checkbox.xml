@@ -15,14 +15,8 @@
                   tools:text="Price Range"
                   android:textSize="16sp"/>
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                  tools:text="All"
-                  android:id="@+id/tvSelected"
-                  android:textSize="16sp"/>
-
-        <ImageView android:layout_width="wrap_content" android:layout_height="24dp"
-                   android:id="@+id/expandIcon"
-                   android:src="@drawable/ic_chevron_right_black"/>
+        <Switch android:layout_width="wrap_content" android:layout_height="24dp"
+                android:id="@+id/switchButton"/>
 
 
     </LinearLayout>

@@ -1,23 +1,27 @@
 package com.ninetynine.androidfilter
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.ObservableArrayList
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexWrap
-import com.google.android.flexbox.FlexboxLayoutManager
-import com.google.android.flexbox.JustifyContent
 import com.google.gson.Gson
+import com.ninetynine.androidfilter.Interface.BinderHandler
+import com.ninetynine.androidfilter.Interface.ClickHandler
 import com.ninetynine.androidfilter.Model.Pages
 import com.ninetynine.androidfilter.Model.Row
 
 
-class MoreActivity : AppCompatActivity() {
+class MoreActivity : AppCompatActivity(), BinderHandler<Any> {
+
 
     var listRow: ObservableArrayList<Row> = ObservableArrayList()
     var pages: Pages? = null
+    var row = Row()
     lateinit var recyclerView: androidx.recyclerview.widget.RecyclerView
+    var value: ArrayList<String> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,15 +36,19 @@ class MoreActivity : AppCompatActivity() {
             listRow.addAll(it.rows!!)
         }
 
-        recyclerView.layoutManager = FlexibleFlexboxLayoutManager(this,FlexDirection.ROW,FlexWrap.WRAP)
+        recyclerView.layoutManager = FlexibleFlexboxLayoutManager(this, FlexDirection.ROW, FlexWrap.WRAP)
+        recyclerView.adapter = RecyclerViewAdapter(this@MoreActivity, listRow, this@MoreActivity.clickHandler()!!)
+    }
 
-        recyclerView.adapter = RecyclerViewAdapter(this@MoreActivity, listRow, object :
-            RecyclerViewAdapter.OnItemClickListener {
-            override fun onItemClick(item: Any) {
+    override fun onBackPressed() {
 
-            }
+        if (pages!!.key.equals("more_filters_page", true)) {
+            val returnIntent = Intent()
+            returnIntent.putExtra("returnValue", Gson().toJson(pages))
+            setResult(RESULT_OK, returnIntent)
+        }
 
-        })
+        super.onBackPressed()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -52,4 +60,17 @@ class MoreActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
+
+    override fun clickHandler(): ClickHandler<Any>? {
+        return ClickHandler { item, position ->
+            row = item as Row
+            listRow.clear()
+            listRow.add(row)
+            pages!!.sections!!.forEach {
+                it.rows = listRow
+            }
+        }
+    }
+
+
 }

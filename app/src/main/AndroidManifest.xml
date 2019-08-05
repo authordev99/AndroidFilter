@@ -11,11 +11,16 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <activity android:name=".MoreActivity"
-                  android:parentActivityName=".MainActivity">
+        <activity android:name=".ResultActivity"
+        android:label="Result">
         </activity>
-        <activity android:name=".MainActivity"
-                  android:label="Filter">
+        <activity
+                android:name=".MoreActivity"
+                android:parentActivityName=".MainActivity">
+        </activity>
+        <activity
+                android:name=".MainActivity"
+                android:label="Filter">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

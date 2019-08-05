@@ -1,4 +1,4 @@
-package com.ninetynine.androidfilter
+package com.ninetynine.androidfilter.Interface
 
 import com.ninetynine.androidfilter.Model.Model
 

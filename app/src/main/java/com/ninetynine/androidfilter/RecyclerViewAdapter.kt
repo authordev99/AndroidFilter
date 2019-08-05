@@ -6,8 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.core.content.ContextCompat
 import com.google.android.flexbox.*
+import com.ninetynine.androidfilter.Interface.ClickHandler
 import com.ninetynine.androidfilter.Model.Page
 import com.ninetynine.androidfilter.Model.Pages
 import com.ninetynine.androidfilter.Model.Row
@@ -17,19 +17,21 @@ import kotlinx.android.synthetic.main.list_item_type.view.*
 class RecyclerViewAdapter() :
     androidx.recyclerview.widget.RecyclerView.Adapter<RecyclerViewAdapter.BaseViewHolder<*>>() {
 
+
     lateinit var context: Context
     lateinit var listRow: ObservableArrayList<Row>
     var page: Page? = null
-    var clickListener: OnItemClickListener? = null
+    //    var clickListener: OnItemClickListener? = null
     var isType = "sale"
     var isExpanded = false
+    var clickHandler: ClickHandler<Any>? = null
 
     constructor(
         context: Context,
         listRow: ObservableArrayList<Row>,
-        clickListener: OnItemClickListener
+        clickHandler: ClickHandler<Any>
     ) : this() {
-        this.clickListener = clickListener
+        this.clickHandler = clickHandler
         this.context = context
         this.listRow = listRow
     }
@@ -62,6 +64,7 @@ class RecyclerViewAdapter() :
         val viewType = holder.itemViewType
         val element = listRow[position]
         println("viewType = $viewType")
+
         when (viewType) {
             ITEM_SELECTION -> {
                 val viewHolderSelection = holder as ViewHolderSelection
@@ -141,7 +144,9 @@ class RecyclerViewAdapter() :
                         item.value = isType
 
                     }
-                    notifyDataSetChanged()
+                    //hardcore 11 itemCount (notify until 11 item)
+                    //error will use notifyDataSetChange related with FlexLayoutManager
+                    notifyItemRangeChanged(position, 11)
                 }
                 linearLayout.addView(selection)
             }
@@ -154,12 +159,18 @@ class RecyclerViewAdapter() :
 
 
     inner class ViewHolderRentalType(itemView: View) : BaseViewHolder<Row>(itemView) {
-        val flexboxLayout = itemView.findViewById<FlexboxLayout>(R.id.linearLayout)
+        val flexboxLayout = itemView.findViewById<FlexboxLayout>(R.id.flexboxLayout)
         var itemValue: Any? = null
+        var valueList: ArrayList<String?> = ArrayList()
         override fun bind(item: Row, position: Int) {
             flexboxLayout.removeAllViews()
-            if (item.visible_conditions != null && item.visible_conditions!![0].listing_type.equals(isType, true)) {
 
+            //hardcore get visibleCondition Class on index 0
+            if (item.visible_conditions != null && (item.visible_conditions!![0].listing_type.equals(
+                    isType,
+                    true
+                )) || item.visible_conditions == null
+            ) {
                 flexboxLayout.visibility = View.VISIBLE
                 flexboxLayout.flexDirection = FlexDirection.ROW
                 flexboxLayout.alignContent = AlignContent.FLEX_START
@@ -176,7 +187,7 @@ class RecyclerViewAdapter() :
                 }
 
 
-                item.options!!.forEach {
+                item.options!!.forEach { option ->
                     val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
                     val selection = inflater.inflate(R.layout.list_item_bedroom, null)
                     val params = FlexboxLayout.LayoutParams(
@@ -186,13 +197,12 @@ class RecyclerViewAdapter() :
                     val dp = context.resources.displayMetrics.density.toInt()
                     params.setMargins(16 * dp, 16 * dp, 8 * dp, 16 * dp)
                     selection.layoutParams = params
-                    println("it.label ViewHolderRentalType = " + it.label)
-                    selection.textType.text = it.label
+                    selection.textType.text = option.label
 
                     if (item.value != null) {
                         selection.textType.isActivated =
-                            if (item.value is ArrayList<*>) (itemValue as ArrayList<*>).contains(it.value) else (itemValue as String).equals(
-                                it.value,
+                            if (item.value is ArrayList<*>) (itemValue as ArrayList<*>).contains(option.value) else (itemValue as String).equals(
+                                option.value,
                                 true
                             )
                     }
@@ -200,7 +210,11 @@ class RecyclerViewAdapter() :
 
                     selection.setOnClickListener {
                         selection.textType.isActivated = !selection.textType.isActivated
+                        if (!valueList.contains(option.label))
+                            valueList.add(option.label)
 
+                        item.value = valueList
+                        clickHandler!!.onClick(item,position)
                     }
                     flexboxLayout.addView(selection)
                 }
@@ -220,6 +234,8 @@ class RecyclerViewAdapter() :
         val linearLayoutTitle = itemView.findViewById<LinearLayout>(R.id.linearLayoutPrice)
         val layoutRange = itemView.findViewById<LinearLayout>(R.id.layoutRange)
         val expandIcon = itemView.findViewById<ImageView>(R.id.expandIcon)
+        val etMinimum = itemView.findViewById<EditText>(R.id.etMinimum)
+        val etMaximum = itemView.findViewById<EditText>(R.id.etMaximum)
         override fun bind(item: Row, position: Int) {
             title.text = item.title
             tvMaxPrice.text = item.max_title
@@ -229,7 +245,13 @@ class RecyclerViewAdapter() :
                 if (isExpanded) {
                     layoutRange.visibility = View.GONE
                     expandIcon.setImageResource(R.drawable.ic_expand_more_black)
+                    tvRange.text =
+                        if (etMinimum.text.toString() == "" || etMaximum.text.toString() == "") "Any - Any" else etMinimum.text.toString() + " - " + etMaximum.text.toString()
                     isExpanded = false
+
+                    item.value = tvRange.text.toString()
+                    clickHandler!!.onClick(item, position)
+
                 } else {
                     layoutRange.visibility = View.VISIBLE
                     expandIcon.setImageResource(R.drawable.ic_expand_less_black)
@@ -253,12 +275,10 @@ class RecyclerViewAdapter() :
     inner class ViewHolderPage(itemView: View) : BaseViewHolder<Row>(itemView) {
         val linearLayoutMore = itemView.findViewById<LinearLayout>(R.id.linearLayoutMore)
         val tvTitle = itemView.findViewById<TextView>(R.id.tvTitle)
-        val tvSelected = itemView.findViewById<TextView>(R.id.tvSelected)
-        var pages: Pages? = null
         override fun bind(item: Row, position: Int) {
             tvTitle.text = item.title
             linearLayoutMore.setOnClickListener {
-                clickListener!!.onItemClick(item)
+                clickHandler!!.onClick(item, position)
             }
         }
     }
@@ -268,14 +288,15 @@ class RecyclerViewAdapter() :
         val tvTitle = itemView.findViewById<TextView>(R.id.tvTitle)
         override fun bind(item: Row, position: Int) {
             tvTitle.text = item.title
+            switchButton.isChecked = !(item.value as String).equals("false", true)
             switchButton.setOnCheckedChangeListener { buttonView, isChecked ->
-
+                item.value = isChecked.toString()
+                clickHandler!!.onClick(item, position)
             }
         }
     }
 
     inner class ViewHolderSection(itemView: View) : BaseViewHolder<Row>(itemView) {
-        val section = itemView.findViewById<View>(R.id.section)
         override fun bind(item: Row, position: Int) {
         }
     }
@@ -284,8 +305,5 @@ class RecyclerViewAdapter() :
         abstract fun bind(item: T, position: Int)
     }
 
-    interface OnItemClickListener {
-        fun onItemClick(item: Any)
-    }
 
 }
